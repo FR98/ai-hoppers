@@ -3,11 +3,6 @@
 	Author
 	    Francisco Rosal 18676
 ---------------------------------------------------------------------------------------------------
-    Reglas
-        Un jugador puede saltar dos casillas solo si esta saltando una pieza
-        Un jugador puede moverse en cualquier direccion a una casilla de distancia
-        Un jugador gana si se llena el espacio del opuesto y tiene minimo una pieza propia
-        Si un jugador salta puede seguir moviendose siempre y cuando pueda seguir saltando
 """
 
 from collections import namedtuple
@@ -59,16 +54,25 @@ class Hoppers(object):
             self.get_player_input(actual_player_selected_piece, selecting_piece=True)
 
             if self.valid_input:
+                actual_player_selected_space = input("Choose a space to move to [x,y]: ")
+                self.get_player_input(actual_player_selected_space, selecting_piece=False)
                 self.check_player_movement()
-                self.print_board()
+            self.print_board()
 
     def check_player_movement(self):
         self.valid_input = False
+
+        # TODO
+        # Comparar distancia entre pieza y espacio selecctionado
+        # Un jugador puede saltar dos casillas solo si esta saltando una pieza
+        # Un jugador puede moverse en cualquier direccion a una casilla de distancia
+        # Si un jugador salta puede seguir moviendose siempre y cuando pueda seguir saltando
 
         if self.valid_movement:
             self.next_player()
 
     def is_there_winner(self):
+        # TODO: Un jugador gana si se llena el espacio del opuesto y tiene minimo una pieza propia
         return False
 
     def get_player_input(self, player_input, selecting_piece):
