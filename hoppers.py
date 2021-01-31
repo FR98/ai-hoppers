@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+from math import sqrt
 from collections import namedtuple
 from prettytable import PrettyTable
 
@@ -60,20 +61,66 @@ class Hoppers(object):
             self.print_board()
 
     def check_player_movement(self):
-        self.valid_input = False
+        distance = 0
+        self.valid_movement = False
 
-        # TODO
-        # Comparar distancia entre pieza y espacio selecctionado
-        # Un jugador puede saltar dos casillas solo si esta saltando una pieza
-        # Un jugador puede moverse en cualquier direccion a una casilla de distancia
-        # Si un jugador salta puede seguir moviendose siempre y cuando pueda seguir saltando
+        if self.valid_input:
+            if self.selected_piece.y == self.move_to.y:
+                distance = sqrt((self.selected_piece.x - self.move_to.x) ** 2)
+            elif self.selected_piece.x == self.move_to.x:
+                distance = sqrt((self.selected_piece.y - self.move_to.y) ** 2)
+            else:
+                distance = self.get_diagonal_distance()
 
-        if self.valid_movement:
-            self.next_player()
+            distance = int(distance)
+
+            if distance == 1:
+                self.valid_movement = True
+            elif distance == 2:
+                # Un jugador puede saltar dos casillas solo si esta saltando una pieza
+                # Si un jugador salta puede seguir moviendose siempre y cuando pueda seguir saltando
+                self.valid_movement = True
+            else:
+                self.valid_movement = False
+
+            self.valid_input = False
+            if self.valid_movement:
+                self.move_piece()
+                self.next_player()
+
+    def move_piece(self):
+        self.board[self.selected_piece.y][self.selected_piece.x] = 0
+        self.board[self.move_to.y][self.move_to.x] = 1 if self.actual_turn == self.player1 else -1
 
     def is_there_winner(self):
         # TODO: Un jugador gana si se llena el espacio del opuesto y tiene minimo una pieza propia
         return False
+
+    def get_diagonal_distance(self):
+        distance = 0
+
+        diagonals1 = [
+            Position(self.selected_piece.x + 1, self.selected_piece.y - 1),
+            Position(self.selected_piece.x + 1, self.selected_piece.y + 1),
+            Position(self.selected_piece.x - 1, self.selected_piece.y + 1),
+            Position(self.selected_piece.x - 1, self.selected_piece.y - 1)
+        ]
+
+        diagonals2 = [
+            Position(self.selected_piece.x + 2, self.selected_piece.y - 2),
+            Position(self.selected_piece.x + 2, self.selected_piece.y + 2),
+            Position(self.selected_piece.x - 2, self.selected_piece.y + 2),
+            Position(self.selected_piece.x - 2, self.selected_piece.y - 2)
+        ]
+
+        if self.move_to in diagonals1:
+            distance = 1
+        elif self.move_to in diagonals2:
+            distance = 2
+        else:
+            distance = 0
+
+        return distance
 
     def get_player_input(self, player_input, selecting_piece):
         try:
