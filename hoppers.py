@@ -70,16 +70,15 @@ class Hoppers(object):
             elif self.selected_piece.x == self.move_to.x:
                 distance = sqrt((self.selected_piece.y - self.move_to.y) ** 2)
             else:
-                distance = self.get_diagonal_distance()
+                distance, valid_jump = self.get_diagonal_distance()
 
             distance = int(distance)
 
             if distance == 1:
                 self.valid_movement = True
             elif distance == 2:
-                # Un jugador puede saltar dos casillas solo si esta saltando una pieza
                 # Si un jugador salta puede seguir moviendose siempre y cuando pueda seguir saltando
-                self.valid_movement = True
+                self.valid_movement = True if valid_jump else False
             else:
                 self.valid_movement = False
 
@@ -98,29 +97,39 @@ class Hoppers(object):
 
     def get_diagonal_distance(self):
         distance = 0
+        valid_jump = False
 
-        diagonals1 = [
-            Position(self.selected_piece.x + 1, self.selected_piece.y - 1),
-            Position(self.selected_piece.x + 1, self.selected_piece.y + 1),
-            Position(self.selected_piece.x - 1, self.selected_piece.y + 1),
-            Position(self.selected_piece.x - 1, self.selected_piece.y - 1)
-        ]
+        ne1 = Position(self.selected_piece.x + 1, self.selected_piece.y - 1)
+        se1 = Position(self.selected_piece.x + 1, self.selected_piece.y + 1)
+        so1 = Position(self.selected_piece.x - 1, self.selected_piece.y + 1)
+        no1 = Position(self.selected_piece.x - 1, self.selected_piece.y - 1)
 
-        diagonals2 = [
-            Position(self.selected_piece.x + 2, self.selected_piece.y - 2),
-            Position(self.selected_piece.x + 2, self.selected_piece.y + 2),
-            Position(self.selected_piece.x - 2, self.selected_piece.y + 2),
-            Position(self.selected_piece.x - 2, self.selected_piece.y - 2)
-        ]
+        ne2 = Position(self.selected_piece.x + 2, self.selected_piece.y - 2)
+        se2 = Position(self.selected_piece.x + 2, self.selected_piece.y + 2)
+        so2 = Position(self.selected_piece.x - 2, self.selected_piece.y + 2)
+        no2 = Position(self.selected_piece.x - 2, self.selected_piece.y - 2)
 
-        if self.move_to in diagonals1:
+        if self.move_to in [ne1, se1, so1, no1]:
             distance = 1
-        elif self.move_to in diagonals2:
+            valid_jump = True
+        elif self.move_to in [ne2, se2, so2, no2]:
             distance = 2
+            valid_jump = True
+            if self.move_to == ne2:
+                valid_jump = False if self.board[ne1.y][ne1.x] == 0 else True
+            elif self.move_to == se2:
+                valid_jump = False if self.board[se1.y][se1.x] == 0 else True
+            elif self.move_to == so2:
+                valid_jump = False if self.board[so1.y][so1.x] == 0 else True
+            elif self.move_to == no2:
+                valid_jump = False if self.board[no1.y][no1.x] == 0 else True
+            else:
+                valid_jump = False
         else:
             distance = 0
+            valid_jump = False
 
-        return distance
+        return distance, valid_jump
 
     def get_player_input(self, player_input, selecting_piece):
         try:
