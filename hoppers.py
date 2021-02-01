@@ -36,6 +36,8 @@ class Hoppers(object):
         self.move_to = None
         self.valid_movement = True
         self.can_jump_again = False
+        self.player1_territory = []
+        self.player2_territory = []
 
         self.use_bot = use_bot
         self.play()
@@ -62,6 +64,7 @@ class Hoppers(object):
             self.print_board()
 
         print("There is a winner!")
+        print(self.get_winner())
 
     def check_player_movement(self):
         distance = 0
@@ -99,27 +102,33 @@ class Hoppers(object):
         self.board[self.move_to.y][self.move_to.x] = 1 if self.actual_turn == self.player1 else -1
 
     def is_there_winner(self):
-        player1_territory = [self.board[0][0], self.board[0][1], self.board[0][2], self.board[0][3], self.board[0][4], self.board[1][0], self.board[1][1], self.board[1][2], self.board[1][3], self.board[2][0], self.board[2][1], self.board[2][2], self.board[3][0], self.board[3][1], self.board[4][0]]
-        player2_territory = [self.board[9][5], self.board[9][6], self.board[9][7], self.board[9][8], self.board[9][9], self.board[8][6], self.board[8][7], self.board[8][8], self.board[8][9], self.board[7][7], self.board[7][8], self.board[7][9], self.board[6][8], self.board[6][9], self.board[5][9]]
+        self.get_territories()
         empty_space_in_1 = False
         empty_space_in_2 = False
 
-        for pos in player1_territory:
+        for pos in self.player1_territory:
             if pos == 0:
                 empty_space_in_1 = True
 
-        for pos in player2_territory:
+        for pos in self.player2_territory:
             if pos == 0:
                 empty_space_in_2 = True
 
         if empty_space_in_1 and empty_space_in_2:
             return False
-        elif self.player2 in player1_territory and not empty_space_in_1:
+        elif self.player2 in self.player1_territory and not empty_space_in_1:
             return True
-        elif self.player1 in player2_territory and not empty_space_in_2:
+        elif self.player1 in self.player2_territory and not empty_space_in_2:
             return True
 
         return False
+
+    def get_winner(self):
+        self.get_territories()
+        for pos in self.player1_territory:
+            if pos == 0:
+                return "Player 1"
+        return "Player 2"
 
     def check_if_can_jump_again(self):
         coords = self.get_cardinals_coords()
@@ -265,3 +274,7 @@ class Hoppers(object):
             "o2": Position(self.selected_piece.x - 2, self.selected_piece.y),
             "no2": Position(self.selected_piece.x - 2, self.selected_piece.y - 2)
         }
+
+    def get_territories(self):
+        self.player1_territory = [self.board[0][0], self.board[0][1], self.board[0][2], self.board[0][3], self.board[0][4], self.board[1][0], self.board[1][1], self.board[1][2], self.board[1][3], self.board[2][0], self.board[2][1], self.board[2][2], self.board[3][0], self.board[3][1], self.board[4][0]]
+        self.player2_territory = [self.board[9][5], self.board[9][6], self.board[9][7], self.board[9][8], self.board[9][9], self.board[8][6], self.board[8][7], self.board[8][8], self.board[8][9], self.board[7][7], self.board[7][8], self.board[7][9], self.board[6][8], self.board[6][9], self.board[5][9]]
