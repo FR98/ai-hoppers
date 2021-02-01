@@ -35,6 +35,7 @@ class Hoppers(object):
         self.selected_piece = None
         self.move_to = None
         self.valid_movement = True
+        self.can_jump_again = False
 
         self.use_bot = use_bot
         self.play()
@@ -70,7 +71,7 @@ class Hoppers(object):
             else:
                 distance, valid_jump = self.get_diagonal_distance()
 
-            if distance == 1:
+            if distance == 1 and not self.can_jump_again:
                 self.valid_movement = True
             elif distance == 2:
                 self.valid_movement = True if valid_jump else False
@@ -80,8 +81,16 @@ class Hoppers(object):
             self.valid_input = False
             if self.valid_movement:
                 self.move_piece()
-                if distance == 1 or (distance == 2 and not self.check_if_can_jump_again()):
+                self.can_jump_again = self.check_if_can_jump_again()
+                if distance == 1 or (distance == 2 and not self.can_jump_again):
                     self.next_player()
+                    self.can_jump_again = False
+                elif distance == 2 and self.can_jump_again:
+                    self.print_board()
+                    want_to_jump_again = input("Do you want to move again? (y/n): ")
+                    if want_to_jump_again == "n":
+                        self.next_player()
+                        self.can_jump_again = False
 
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
