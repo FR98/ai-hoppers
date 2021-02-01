@@ -61,6 +61,8 @@ class Hoppers(object):
                 self.check_player_movement()
             self.print_board()
 
+        print("There is a winner!")
+
     def check_player_movement(self):
         distance = 0
         self.valid_movement = False
@@ -97,7 +99,26 @@ class Hoppers(object):
         self.board[self.move_to.y][self.move_to.x] = 1 if self.actual_turn == self.player1 else -1
 
     def is_there_winner(self):
-        # TODO: Un jugador gana si se llena el espacio del opuesto y tiene minimo una pieza propia
+        player1_territory = [self.board[0][0], self.board[0][1], self.board[0][2], self.board[0][3], self.board[0][4], self.board[1][0], self.board[1][1], self.board[1][2], self.board[1][3], self.board[2][0], self.board[2][1], self.board[2][2], self.board[3][0], self.board[3][1], self.board[4][0]]
+        player2_territory = [self.board[9][5], self.board[9][6], self.board[9][7], self.board[9][8], self.board[9][9], self.board[8][6], self.board[8][7], self.board[8][8], self.board[8][9], self.board[7][7], self.board[7][8], self.board[7][9], self.board[6][8], self.board[6][9], self.board[5][9]]
+        empty_space_in_1 = False
+        empty_space_in_2 = False
+
+        for pos in player1_territory:
+            if pos == 0:
+                empty_space_in_1 = True
+
+        for pos in player2_territory:
+            if pos == 0:
+                empty_space_in_2 = True
+
+        if empty_space_in_1 and empty_space_in_2:
+            return False
+        elif self.player2 in player1_territory and not empty_space_in_1:
+            return True
+        elif self.player1 in player2_territory and not empty_space_in_2:
+            return True
+
         return False
 
     def check_if_can_jump_again(self):
