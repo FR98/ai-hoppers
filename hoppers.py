@@ -5,7 +5,6 @@
 ---------------------------------------------------------------------------------------------------
 """
 
-from math import sqrt
 from collections import namedtuple
 from prettytable import PrettyTable
 
@@ -100,6 +99,7 @@ class Hoppers(object):
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
         self.board[self.move_to.y][self.move_to.x] = 1 if self.actual_turn == self.player1 else -1
+        self.selected_piece = self.move_to
 
     def is_there_winner(self):
         self.get_territories()
@@ -107,12 +107,10 @@ class Hoppers(object):
         empty_space_in_2 = False
 
         for pos in self.player1_territory:
-            if pos == 0:
-                empty_space_in_1 = True
+            if pos == 0: empty_space_in_1 = True
 
         for pos in self.player2_territory:
-            if pos == 0:
-                empty_space_in_2 = True
+            if pos == 0: empty_space_in_2 = True
 
         if empty_space_in_1 and empty_space_in_2:
             return False
@@ -126,8 +124,7 @@ class Hoppers(object):
     def get_winner(self):
         self.get_territories()
         for pos in self.player1_territory:
-            if pos == 0:
-                return "Player 1"
+            if pos == 0: return "Player 1"
         return "Player 2"
 
     def check_if_can_jump_again(self):
@@ -136,23 +133,17 @@ class Hoppers(object):
         n2, ne2, e2, se2, s2, so2, o2, no2 = coords["n2"], coords["ne2"], coords["e2"], coords["se2"], coords["s2"], coords["so2"], coords["o2"], coords["no2"]
 
         for coord in [n1, ne1, e1, se1, s1, so1, o1, no1]:
+            if not coord: continue
+
             if self.board[coord.y][coord.x] != 0:
-                if coord == n1 and self.board[n2.y][n2.x] == 0:
-                    return True
-                elif coord == ne1 and self.board[ne2.y][ne2.x] == 0:
-                    return True
-                elif coord == e1 and self.board[e2.y][e2.x] == 0:
-                    return True
-                elif coord == se1 and self.board[se2.y][se2.x] == 0:
-                    return True
-                elif coord == s1 and self.board[s2.y][s2.x] == 0:
-                    return True
-                elif coord == so1 and self.board[so2.y][so2.x] == 0:
-                    return True
-                elif coord == o1 and self.board[o2.y][o2.x] == 0:
-                    return True
-                elif coord == no1 and self.board[no2.y][no2.x] == 0:
-                    return True
+                if coord == n1      and n2  and self.board[n2.y][n2.x] == 0:    return True
+                elif coord == ne1   and ne2 and self.board[ne2.y][ne2.x] == 0:  return True
+                elif coord == e1    and e2  and self.board[e2.y][e2.x] == 0:    return True
+                elif coord == se1   and se2 and self.board[se2.y][se2.x] == 0:  return True
+                elif coord == s1    and s2  and self.board[s2.y][s2.x] == 0:    return True
+                elif coord == so1   and so2 and self.board[so2.y][so2.x] == 0:  return True
+                elif coord == o1    and o2  and self.board[o2.y][o2.x] == 0:    return True
+                elif coord == no1   and no2 and self.board[no2.y][no2.x] == 0:  return True
         return False
 
     def get_lineal_distance(self):
@@ -256,24 +247,40 @@ class Hoppers(object):
         print(pretty_board)
 
     def get_cardinals_coords(self):
-        return {
-            "n1": Position(self.selected_piece.x, self.selected_piece.y - 1),
-            "ne1": Position(self.selected_piece.x + 1, self.selected_piece.y - 1),
-            "e1": Position(self.selected_piece.x + 1, self.selected_piece.y),
-            "se1": Position(self.selected_piece.x + 1, self.selected_piece.y + 1),
-            "s1": Position(self.selected_piece.x, self.selected_piece.y + 1),
-            "so1": Position(self.selected_piece.x - 1, self.selected_piece.y + 1),
-            "o1": Position(self.selected_piece.x - 1, self.selected_piece.y),
-            "no1": Position(self.selected_piece.x - 1, self.selected_piece.y - 1),
-            "n2": Position(self.selected_piece.x, self.selected_piece.y - 2),
-            "ne2": Position(self.selected_piece.x + 2, self.selected_piece.y - 2),
-            "e2": Position(self.selected_piece.x + 2, self.selected_piece.y),
-            "se2": Position(self.selected_piece.x + 2, self.selected_piece.y + 2),
-            "s2": Position(self.selected_piece.x, self.selected_piece.y + 2),
-            "so2": Position(self.selected_piece.x - 2, self.selected_piece.y + 2),
-            "o2": Position(self.selected_piece.x - 2, self.selected_piece.y),
-            "no2": Position(self.selected_piece.x - 2, self.selected_piece.y - 2)
-        }
+        n1 = Position(self.selected_piece.x, self.selected_piece.y - 1)
+        n1 = None if n1.x < 0 or n1.x > 9 or n1.y < 0 or n1.y > 9 else n1
+        ne1 = Position(self.selected_piece.x + 1, self.selected_piece.y - 1)
+        ne1 = None if ne1.x < 0 or ne1.x > 9 or ne1.y < 0 or ne1.y > 9 else ne1
+        e1 = Position(self.selected_piece.x + 1, self.selected_piece.y)
+        e1 = None if e1.x < 0 or e1.x > 9 or e1.y < 0 or e1.y > 9 else e1
+        se1 = Position(self.selected_piece.x + 1, self.selected_piece.y + 1)
+        se1 = None if se1.x < 0 or se1.x > 9 or se1.y < 0 or se1.y > 9 else se1
+        s1 = Position(self.selected_piece.x, self.selected_piece.y + 1)
+        s1 = None if s1.x < 0 or s1.x > 9 or s1.y < 0 or s1.y > 9 else s1
+        so1 = Position(self.selected_piece.x - 1, self.selected_piece.y + 1)
+        so1 = None if so1.x < 0 or so1.x > 9 or so1.y < 0 or so1.y > 9 else so1
+        o1 = Position(self.selected_piece.x - 1, self.selected_piece.y)
+        o1 = None if o1.x < 0 or o1.x > 9 or o1.y < 0 or o1.y > 9 else o1
+        no1 = Position(self.selected_piece.x - 1, self.selected_piece.y - 1)
+        no1 = None if no1.x < 0 or no1.x > 9 or no1.y < 0 or no1.y > 9 else no1
+        n2 = Position(self.selected_piece.x, self.selected_piece.y - 2)
+        n2 = None if n2.x < 0 or n2.x > 9 or n2.y < 0 or n2.y > 9 else n2
+        ne2 = Position(self.selected_piece.x + 2, self.selected_piece.y - 2)
+        ne2 = None if ne2.x < 0 or ne2.x > 9 or ne2.y < 0 or ne2.y > 9 else ne2
+        e2 = Position(self.selected_piece.x + 2, self.selected_piece.y)
+        e2 = None if e2.x < 0 or e2.x > 9 or e2.y < 0 or e2.y > 9 else e2
+        se2 = Position(self.selected_piece.x + 2, self.selected_piece.y + 2)
+        se2 = None if se2.x < 0 or se2.x > 9 or se2.y < 0 or se2.y > 9 else se2
+        s2 = Position(self.selected_piece.x, self.selected_piece.y + 2)
+        s2 = None if s2.x < 0 or s2.x > 9 or s2.y < 0 or s2.y > 9 else s2
+        so2 = Position(self.selected_piece.x - 2, self.selected_piece.y + 2)
+        so2 = None if so2.x < 0 or so2.x > 9 or so2.y < 0 or so2.y > 9 else so2
+        o2 = Position(self.selected_piece.x - 2, self.selected_piece.y)
+        o2 = None if o2.x < 0 or o2.x > 9 or o2.y < 0 or o2.y > 9 else o2
+        no2 = Position(self.selected_piece.x - 2, self.selected_piece.y - 2)
+        no2 = None if no2.x < 0 or no2.x > 9 or no2.y < 0 or no2.y > 9 else no2
+
+        return {"n1": n1, "ne1": ne1, "e1": e1, "se1": se1, "s1": s1, "so1": so1, "o1": o1, "no1": no1, "n2": n2, "ne2": ne2, "e2": e2, "se2": se2, "s2": s2, "so2": so2, "o2": o2, "no2": no2}
 
     def get_territories(self):
         self.player1_territory = [self.board[0][0], self.board[0][1], self.board[0][2], self.board[0][3], self.board[0][4], self.board[1][0], self.board[1][1], self.board[1][2], self.board[1][3], self.board[2][0], self.board[2][1], self.board[2][2], self.board[3][0], self.board[3][1], self.board[4][0]]
