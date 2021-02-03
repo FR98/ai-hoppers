@@ -66,8 +66,7 @@ class Hoppers(object):
         print(self.get_winner())
 
     def check_player_movement(self):
-        distance = 0
-        self.valid_movement = False
+        distance, self.valid_movement = 0, False
 
         if self.valid_input:
             if self.selected_piece.y == self.move_to.y or self.selected_piece.x == self.move_to.x:
@@ -103,14 +102,10 @@ class Hoppers(object):
 
     def is_there_winner(self):
         self.get_territories()
-        empty_space_in_1 = False
-        empty_space_in_2 = False
+        empty_space_in_1, empty_space_in_2 = False, False
 
-        for pos in self.player1_territory:
-            if pos == 0: empty_space_in_1 = True
-
-        for pos in self.player2_territory:
-            if pos == 0: empty_space_in_2 = True
+        if 0 in self.player1_territory: empty_space_in_1 = True
+        if 0 in self.player2_territory: empty_space_in_2 = True
 
         if empty_space_in_1 and empty_space_in_2:
             return False
@@ -123,8 +118,7 @@ class Hoppers(object):
 
     def get_winner(self):
         self.get_territories()
-        for pos in self.player1_territory:
-            if pos == 0: return "Player 1"
+        if 0 in self.player1_territory: return "Player 1"
         return "Player 2"
 
     def check_if_can_jump_again(self):
@@ -147,19 +141,15 @@ class Hoppers(object):
         return False
 
     def get_lineal_distance(self):
-        distance = 0
-        valid_jump = False
-
+        distance, valid_jump = 0, False
         coords = self.get_cardinals_coords()
         n1, e1, s1, o1 = coords["n1"], coords["e1"], coords["s1"], coords["o1"]
         n2, e2, s2, o2 = coords["n2"], coords["e2"], coords["s2"], coords["o2"]
 
         if self.move_to in [n1, e1, s1, o1]:
-            distance = 1
-            valid_jump = True
+            distance, valid_jump = 1, True
         elif self.move_to in [n2, e2, s2, o2]:
-            distance = 2
-            valid_jump = True
+            distance, valid_jump = 2, True
 
             if self.move_to == n2:
                 valid_jump = False if self.board[n1.y][n1.x] == 0 else True
@@ -172,25 +162,20 @@ class Hoppers(object):
             else:
                 valid_jump = False
         else:
-            distance = 0
-            valid_jump = False
+            distance, valid_jump = 0, False
 
         return distance, valid_jump
 
     def get_diagonal_distance(self):
-        distance = 0
-        valid_jump = False
-
+        distance, valid_jump = 0, False
         coords = self.get_cardinals_coords()
         ne1, se1, so1, no1 = coords["ne1"], coords["se1"], coords["so1"], coords["no1"]
         ne2, se2, so2, no2 = coords["ne2"], coords["se2"], coords["so2"], coords["no2"]
 
         if self.move_to in [ne1, se1, so1, no1]:
-            distance = 1
-            valid_jump = True
+            distance, valid_jump = 1, True
         elif self.move_to in [ne2, se2, so2, no2]:
-            distance = 2
-            valid_jump = True
+            distance, valid_jump = 2, True
 
             if self.move_to == ne2:
                 valid_jump = False if self.board[ne1.y][ne1.x] == 0 else True
@@ -203,8 +188,7 @@ class Hoppers(object):
             else:
                 valid_jump = False
         else:
-            distance = 0
-            valid_jump = False
+            distance, valid_jump = 0, False
 
         return distance, valid_jump
 
@@ -217,14 +201,12 @@ class Hoppers(object):
 
                 if selecting_piece:
                     if self.player_own_position(x, y):
-                        self.valid_input = True
-                        self.selected_piece = Position(x, y)
+                        self.valid_input, self.selected_piece = True, Position(x, y)
                     else:
                         self.valid_input = False
                 else:
                     if self.empty_space(x, y):
-                        self.valid_input = True
-                        self.move_to = Position(x, y)
+                        self.valid_input, self.move_to = True, Position(x, y)
                     else:
                         self.valid_input = False
 
