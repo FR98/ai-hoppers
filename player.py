@@ -16,28 +16,23 @@ class Player(object):
     def __init__(self, value, is_ai=False):
         self.value = value
         self.is_ai = is_ai
-        self.depth = 2
+        self.depth = 1
 
     def play(self, board):
-        return self.minimax(board, self.depth)
+        movement_value, best_move, boards = self.minimax(board, self.depth)
+        print(movement_value, best_move, boards)
+        move_from = "{x},{y}".format(x=best_move["from"].x, y=best_move["from"].y)
+        move_to = "{x},{y}".format(x=best_move["to"].x, y=best_move["to"].y)
+        return move_from, move_to
 
     def minimax(self, board, depth, maximising=True, boards=0):
-        actual_player_selected_piece = "0,0"
-        actual_player_selected_space = "0,0"
-        # return actual_player_selected_piece, actual_player_selected_space
+        player_value = self.value if maximising else -self.value
 
         if depth == 0:
-            # TODO
-            print("TODO: QUE HAGO?")
-            # return self.utility_distance(player_to_max), None, prunes, boards
-            return "0,0", "0,0"
+            return self.eval(board, player_value), None, boards
 
-        if maximising:
-            best_val = float("-inf")
-            moves = self.get_possible_moves(board, self.value)
-        else:
-            best_val = float("inf")
-            moves = self.get_possible_moves(board, -self.value)
+        best_value = float("-inf") if maximising else float("inf")
+        moves = self.get_possible_moves(board, player_value)
 
         for move in moves:
             # Move piece
@@ -46,27 +41,54 @@ class Player(object):
             board[move["to"].y][move["to"].x] = piece_value
             boards += 1
 
-            self.minimax(board, depth - 1, not maximising, boards)
-            self.print_board(board)
+            movement_value, best_move, boards = self.minimax(board, depth - 1, not maximising, boards)
 
             # Move the piece back
             board[move["from"].y][move["from"].x] = piece_value
             board[move["to"].y][move["to"].x] = 0
 
-            # if maximising and val > best_val:
-            #     best_val = val
-            #     best_move = (move["from"].loc, to.loc)
-            #     a = max(a, val)
+            print(movement_value, best_value)
 
-            # if not maximising and val < best_val:
-            #     best_val = val
-            #     best_move = (move["from"].loc, to.loc)
-            #     b = min(b, val)
+            if maximising and movement_value > best_value:
+                print("HOLA 1")
+                best_value = movement_value
+                best_move = move
+                # a = max(a, movement_value)
+
+            if not maximising and movement_value < best_value:
+                print("HOLA 2")
+                best_value = movement_value
+                best_move = move
+                # b = min(b, movement_value)
 
             # if self.ab_enabled and b <= a:
-            #     return best_val, best_move, prunes + 1, boards
+            #     return best_value, best_move, boards
 
-        # return best_val, best_move, prunes, boards
+        return best_value, best_move, boards
+
+    def eval(self, board, player_value):
+        value = 0
+        player1_territory, player2_territory = self.get_territories()
+
+        for y in range(len(board)):
+            for x in range(len(board[y])):
+                position = board[y][x]
+
+                if position == 1:
+                    distances = [self.get_distance(Position(x, y), go_to) for go_to in player2_territory if board[go_to.y][go_to.x] == 0]
+                    value += max(distances) if len(distances) else -50
+
+                elif position == -1:
+                    distances = [self.get_distance(Position(x, y), go_to) for go_to in player1_territory if board[go_to.y][go_to.x] == 0]
+                    value += max(distances) if len(distances) else -50
+
+        # if player_value == 1:
+        #     value *= -1
+
+        return value
+
+    def get_distance(self, a, b):
+            return sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
     def get_possible_moves(self, board, player_value):
         moves = []
@@ -151,6 +173,11 @@ class Player(object):
         no2 = None if no2.x < 0 or no2.x > 9 or no2.y < 0 or no2.y > 9 else no2
 
         return {"n1": n1, "ne1": ne1, "e1": e1, "se1": se1, "s1": s1, "so1": so1, "o1": o1, "no1": no1, "n2": n2, "ne2": ne2, "e2": e2, "se2": se2, "s2": s2, "so2": so2, "o2": o2, "no2": no2}
+
+    def get_territories(self):
+        player1_territory = [Position(0, 0), Position(0, 1), Position(0, 2), Position(0, 3), Position(0, 4), Position(1, 0), Position(1, 1), Position(1, 2), Position(1, 3), Position(2, 0), Position(2, 1), Position(2, 2), Position(3, 0), Position(3, 1), Position(4, 0)]
+        player2_territory = [Position(9, 5), Position(9, 6), Position(9, 7), Position(9, 8), Position(9, 9), Position(8, 6), Position(8, 7), Position(8, 8), Position(8, 9), Position(7, 7), Position(7, 8), Position(7, 9), Position(6, 8), Position(6, 9), Position(5, 9)]
+        return player1_territory, player2_territory
 
     def print_board(self, board):
         row_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
