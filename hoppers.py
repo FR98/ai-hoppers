@@ -29,7 +29,7 @@ class Hoppers(object):
         self.empty = 0
         self.player1 = player1
         self.player2 = player2
-        self.actual_turn = self.player1
+        self.actual_player = self.player1
         self.valid_input = False
         self.selected_piece = None
         self.move_to = None
@@ -40,24 +40,32 @@ class Hoppers(object):
         self.play()
 
     def next_player(self):
-        self.actual_turn = self.player1 if self.actual_turn == self.player2 else self.player2
+        self.actual_player = self.player1 if self.actual_player == self.player2 else self.player2
 
     def play(self):
         self.print_board()
 
         while not self.is_there_winner():
-            if self.actual_turn == self.player1:
+            if self.actual_player == self.player1:
                 print("Player 1")
             else:
                 print("Player 2")
 
-            actual_player_selected_piece = input("Choose a piece to move [x,y]: ")
-            self.get_player_input(actual_player_selected_piece, selecting_piece=True)
+            if self.actual_player.is_ai:
+                actual_player_selected_piece, actual_player_selected_space = self.actual_player.play(self.board)
+                self.get_player_input(actual_player_selected_piece, selecting_piece=True)
 
-            if self.valid_input:
-                actual_player_selected_space = input("Choose a space to move to [x,y]: ")
-                self.get_player_input(actual_player_selected_space, selecting_piece=False)
-                self.check_player_movement()
+                if self.valid_input:
+                    self.get_player_input(actual_player_selected_space, selecting_piece=False)
+                    self.check_player_movement()
+            else:
+                actual_player_selected_piece = input("Choose a piece to move [x,y]: ")
+                self.get_player_input(actual_player_selected_piece, selecting_piece=True)
+
+                if self.valid_input:
+                    actual_player_selected_space = input("Choose a space to move to [x,y]: ")
+                    self.get_player_input(actual_player_selected_space, selecting_piece=False)
+                    self.check_player_movement()
             self.print_board()
 
         print("There is a winner!")
@@ -95,7 +103,7 @@ class Hoppers(object):
 
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
-        self.board[self.move_to.y][self.move_to.x] = self.actual_turn.value
+        self.board[self.move_to.y][self.move_to.x] = self.actual_player.value
         self.selected_piece = self.move_to
 
     def is_there_winner(self):
@@ -214,7 +222,7 @@ class Hoppers(object):
             self.valid_input = False
 
     def player_own_position(self, x, y):
-        return True if self.board[y][x] == self.actual_turn.value else False
+        return True if self.board[y][x] == self.actual_player.value else False
 
     def empty_space(self, x, y):
         return True if self.board[y][x] == self.empty else False
