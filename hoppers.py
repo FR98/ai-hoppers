@@ -12,7 +12,7 @@ Position = namedtuple('Position', 'x y')
 
 class Hoppers(object):
 
-    def __init__(self, use_bot=False):
+    def __init__(self, player1, player2):
         self.board = [
             [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
             [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
@@ -27,8 +27,8 @@ class Hoppers(object):
         ]
 
         self.empty = 0
-        self.player1 = 1
-        self.player2 = -1
+        self.player1 = player1
+        self.player2 = player2
         self.actual_turn = self.player1
         self.valid_input = False
         self.selected_piece = None
@@ -37,12 +37,10 @@ class Hoppers(object):
         self.can_jump_again = False
         self.player1_territory = []
         self.player2_territory = []
-
-        self.use_bot = use_bot
         self.play()
 
     def next_player(self):
-        self.actual_turn = 1 if self.actual_turn == self.player2 else -1
+        self.actual_turn = self.player1 if self.actual_turn == self.player2 else self.player2
 
     def play(self):
         self.print_board()
@@ -97,7 +95,7 @@ class Hoppers(object):
 
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
-        self.board[self.move_to.y][self.move_to.x] = 1 if self.actual_turn == self.player1 else -1
+        self.board[self.move_to.y][self.move_to.x] = self.actual_turn.value
         self.selected_piece = self.move_to
 
     def is_there_winner(self):
@@ -109,9 +107,9 @@ class Hoppers(object):
 
         if empty_space_in_1 and empty_space_in_2:
             return False
-        elif self.player2 in self.player1_territory and not empty_space_in_1:
+        elif self.player2.value in self.player1_territory and not empty_space_in_1:
             return True
-        elif self.player1 in self.player2_territory and not empty_space_in_2:
+        elif self.player1.value in self.player2_territory and not empty_space_in_2:
             return True
 
         return False
@@ -216,7 +214,7 @@ class Hoppers(object):
             self.valid_input = False
 
     def player_own_position(self, x, y):
-        return True if self.board[y][x] == self.actual_turn else False
+        return True if self.board[y][x] == self.actual_turn.value else False
 
     def empty_space(self, x, y):
         return True if self.board[y][x] == self.empty else False
