@@ -6,7 +6,6 @@
 """
 
 from collections import namedtuple
-from prettytable import PrettyTable
 
 Position = namedtuple('Position', 'x y')
 
@@ -232,11 +231,21 @@ class Hoppers(object):
         return True if self.board[y][x] == self.empty else False
     
     def print_board(self):
-        row_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        pretty_board = PrettyTable()
-        pretty_board.field_names = row_list
-        pretty_board.add_rows(self.board)
-        print(pretty_board)
+        coords = "-|0|1|2|3|4|5|6|7|8|9|-"
+        chars = {
+            -1: "o",
+            +1: "x",
+            0: " "
+        }
+
+        print("\n")
+        print(coords)
+        for y in range(len(self.board)):
+            row = "{}|".format(y)
+            for x in range(len(self.board[y])):
+                row += "{cell}|".format(cell=chars[self.board[y][x]])
+            print(row + "{}".format(y))
+        print(coords)
 
     def get_cardinals_coords(self):
         n1 = Position(self.selected_piece.x, self.selected_piece.y - 1)

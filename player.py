@@ -7,7 +7,6 @@
 
 from math import sqrt
 from random import choice
-from prettytable import PrettyTable
 from collections import namedtuple
 
 Position = namedtuple('Position', 'x y')
@@ -196,10 +195,3 @@ class Player(object):
         player1_territory = [Position(0, 0), Position(0, 1), Position(0, 2), Position(0, 3), Position(0, 4), Position(1, 0), Position(1, 1), Position(1, 2), Position(1, 3), Position(2, 0), Position(2, 1), Position(2, 2), Position(3, 0), Position(3, 1), Position(4, 0)]
         player2_territory = [Position(9, 5), Position(9, 6), Position(9, 7), Position(9, 8), Position(9, 9), Position(8, 6), Position(8, 7), Position(8, 8), Position(8, 9), Position(7, 7), Position(7, 8), Position(7, 9), Position(6, 8), Position(6, 9), Position(5, 9)]
         return player1_territory, player2_territory
-
-    def print_board(self, board):
-        row_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        pretty_board = PrettyTable()
-        pretty_board.field_names = row_list
-        pretty_board.add_rows(board)
-        print(pretty_board)
