@@ -96,10 +96,14 @@ class Hoppers(object):
                     self.can_jump_again = False
                 elif distance == 2 and self.can_jump_again:
                     self.print_board()
-                    want_to_jump_again = input("Do you want to move again? (y/n): ")
-                    if want_to_jump_again == "n":
+                    if self.actual_player.is_ai:
                         self.next_player()
                         self.can_jump_again = False
+                    else:
+                        want_to_jump_again = input("Do you want to move again? (y/n): ")
+                        if want_to_jump_again == "n":
+                            self.next_player()
+                            self.can_jump_again = False
 
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
