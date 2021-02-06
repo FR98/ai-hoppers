@@ -6,7 +6,7 @@
 """
 
 from math import sqrt
-from random import choice
+from random import choice, shuffle
 from collections import namedtuple
 
 Position = namedtuple('Position', 'x y')
@@ -29,7 +29,7 @@ class Player(object):
         maximising = True if player_value == self.value else False
 
         if self.is_there_winner(board):
-            return None, None
+            return self.eval(board, player_value), None
 
         if depth == 0:
             random_move = choice(self.get_possible_moves(board, self.value))
@@ -38,13 +38,15 @@ class Player(object):
         best_value = float("-inf") if maximising else float("inf")
         moves = self.get_possible_moves(board, player_value)
 
+        shuffle(moves)
+        shuffle(moves)
         for move in moves:
             # Move piece
             piece_value = board[move["from"].y][move["from"].x]
             board[move["from"].y][move["from"].x] = 0
             board[move["to"].y][move["to"].x] = piece_value
 
-            movement_value, best_move = self.minimax(board, depth - 1, -player_value, alfa, beta)
+            movement_value, _ = self.minimax(board, depth - 1, player_value, alfa, beta)
 
             # Move the piece back
             board[move["from"].y][move["from"].x] = piece_value
@@ -75,14 +77,14 @@ class Player(object):
 
                 if position == 1:
                     distances = [self.get_distance(Position(x, y), go_to) for go_to in player2_territory if board[go_to.y][go_to.x] == 0]
-                    value += max(distances) if len(distances) else -50
+                    value -= max(distances) if len(distances) else -50
 
                 elif position == -1:
                     distances = [self.get_distance(Position(x, y), go_to) for go_to in player1_territory if board[go_to.y][go_to.x] == 0]
                     value += max(distances) if len(distances) else -50
 
-        # if player_value == 1:
-        #     value *= -1
+        if player_value == -1:
+            value *= -1
 
         return value
 
