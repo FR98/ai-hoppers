@@ -6,6 +6,7 @@
 """
 
 from math import sqrt
+from random import choice
 from prettytable import PrettyTable
 from collections import namedtuple
 
@@ -13,23 +14,27 @@ Position = namedtuple('Position', 'x y')
 
 class Player(object):
 
-    def __init__(self, value, is_ai=False):
+    def __init__(self, value, is_ai=False, depth=1, alfa_beta_pruning=True):
         self.value = value
         self.is_ai = is_ai
-        self.depth = 1
+        self.depth = depth
+        self.alfa_beta_pruning = alfa_beta_pruning
 
     def play(self, board):
-        movement_value, best_move = self.minimax(board, self.depth)
+        movement_value, best_move = self.minimax(board, self.depth, self.value)
         move_from = "{x},{y}".format(x=best_move["from"].x, y=best_move["from"].y)
         move_to = "{x},{y}".format(x=best_move["to"].x, y=best_move["to"].y)
         return move_from, move_to
 
-    def minimax(self, board, depth, maximising=True):
-        player_value = self.value if maximising else -self.value
-        print(depth)
+    def minimax(self, board, depth, player_value, alfa=float("-inf"), beta=float("inf")):
+        maximising = True if player_value == self.value else False
+
+        if self.is_there_winner(board):
+            return None, None
 
         if depth == 0:
-            return self.eval(board, player_value), None
+            random_move = choice(self.get_possible_moves(board, self.value))
+            return self.eval(board, player_value), random_move
 
         best_value = float("-inf") if maximising else float("inf")
         moves = self.get_possible_moves(board, player_value)
@@ -40,26 +45,24 @@ class Player(object):
             board[move["from"].y][move["from"].x] = 0
             board[move["to"].y][move["to"].x] = piece_value
 
-            movement_value, best_move = self.minimax(board, depth - 1, not maximising)
+            movement_value, best_move = self.minimax(board, depth - 1, -player_value, alfa, beta)
 
             # Move the piece back
             board[move["from"].y][move["from"].x] = piece_value
             board[move["to"].y][move["to"].x] = 0
 
-            print(maximising, movement_value, best_value)
-
             if maximising and movement_value > best_value:
-                best_value = movement_value
                 best_move = move
-                # a = max(a, movement_value)
+                best_value = movement_value
+                alfa = max(alfa, best_value)
 
             if not maximising and movement_value < best_value:
-                best_value = movement_value
                 best_move = move
-                # b = min(b, movement_value)
+                best_value = movement_value
+                beta = min(beta, best_value)
 
-            # if self.ab_enabled and b <= a:
-            #     return best_value, best_move
+            if self.alfa_beta_pruning and (maximising and alfa > beta) or (not maximising and alfa < beta):
+                return best_value, best_move
 
         return best_value, best_move
 
@@ -86,6 +89,24 @@ class Player(object):
 
     def get_distance(self, a, b):
             return sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+
+    def is_there_winner(self, board):
+        player1_territory_coords, player2_territory_coords = self.get_territories()
+        empty_space_in_1, empty_space_in_2 = False, False
+        player1_territory = [board[coord.y][coord.x] for coord in player1_territory_coords]
+        player2_territory = [board[coord.y][coord.x] for coord in player2_territory_coords]
+
+        if 0 in player1_territory: empty_space_in_1 = True
+        if 0 in player2_territory: empty_space_in_2 = True
+
+        if empty_space_in_1 and empty_space_in_2:
+            return False
+        elif -1 in player1_territory and not empty_space_in_1:
+            return True
+        elif 1 in player2_territory and not empty_space_in_2:
+            return True
+
+        return False
 
     def get_possible_moves(self, board, player_value):
         moves = []
