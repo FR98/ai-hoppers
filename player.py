@@ -19,17 +19,17 @@ class Player(object):
         self.depth = 1
 
     def play(self, board):
-        movement_value, best_move, boards = self.minimax(board, self.depth)
-        print(movement_value, best_move, boards)
+        movement_value, best_move = self.minimax(board, self.depth)
         move_from = "{x},{y}".format(x=best_move["from"].x, y=best_move["from"].y)
         move_to = "{x},{y}".format(x=best_move["to"].x, y=best_move["to"].y)
         return move_from, move_to
 
-    def minimax(self, board, depth, maximising=True, boards=0):
+    def minimax(self, board, depth, maximising=True):
         player_value = self.value if maximising else -self.value
+        print(depth)
 
         if depth == 0:
-            return self.eval(board, player_value), None, boards
+            return self.eval(board, player_value), None
 
         best_value = float("-inf") if maximising else float("inf")
         moves = self.get_possible_moves(board, player_value)
@@ -39,32 +39,29 @@ class Player(object):
             piece_value = board[move["from"].y][move["from"].x]
             board[move["from"].y][move["from"].x] = 0
             board[move["to"].y][move["to"].x] = piece_value
-            boards += 1
 
-            movement_value, best_move, boards = self.minimax(board, depth - 1, not maximising, boards)
+            movement_value, best_move = self.minimax(board, depth - 1, not maximising)
 
             # Move the piece back
             board[move["from"].y][move["from"].x] = piece_value
             board[move["to"].y][move["to"].x] = 0
 
-            print(movement_value, best_value)
+            print(maximising, movement_value, best_value)
 
             if maximising and movement_value > best_value:
-                print("HOLA 1")
                 best_value = movement_value
                 best_move = move
                 # a = max(a, movement_value)
 
             if not maximising and movement_value < best_value:
-                print("HOLA 2")
                 best_value = movement_value
                 best_move = move
                 # b = min(b, movement_value)
 
             # if self.ab_enabled and b <= a:
-            #     return best_value, best_move, boards
+            #     return best_value, best_move
 
-        return best_value, best_move, boards
+        return best_value, best_move
 
     def eval(self, board, player_value):
         value = 0
