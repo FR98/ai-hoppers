@@ -51,11 +51,14 @@ class Hoppers(object):
                 print("Player 2")
 
             if self.actual_player.is_ai:
-                actual_player_selected_piece, actual_player_selected_space = self.actual_player.play(self.board)
-                self.get_player_input(actual_player_selected_piece, selecting_piece=True)
+                move = self.actual_player.play(self.board)
+                move_from = "{x},{y}".format(x=move["from"].x, y=move["from"].y)
+                move_to = "{x},{y}".format(x=move["to"].x, y=move["to"].y)
+
+                self.get_player_input(move_from, selecting_piece=True)
 
                 if self.valid_input:
-                    self.get_player_input(actual_player_selected_space, selecting_piece=False)
+                    self.get_player_input(move_to, selecting_piece=False)
                     self.check_player_movement()
             else:
                 actual_player_selected_piece = input("Choose a piece to move [x,y]: ")
@@ -229,7 +232,7 @@ class Hoppers(object):
 
     def empty_space(self, x, y):
         return True if self.board[y][x] == self.empty else False
-    
+
     def print_board(self):
         coords = "-|0|1|2|3|4|5|6|7|8|9|-"
         chars = {

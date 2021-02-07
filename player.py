@@ -21,9 +21,7 @@ class Player(object):
 
     def play(self, board):
         movement_value, best_move = self.minimax(board, self.depth, self.value)
-        move_from = "{x},{y}".format(x=best_move["from"].x, y=best_move["from"].y)
-        move_to = "{x},{y}".format(x=best_move["to"].x, y=best_move["to"].y)
-        return move_from, move_to
+        return best_move
 
     def minimax(self, board, depth, player_value, alfa=float("-inf"), beta=float("inf")):
         maximising = True if player_value == self.value else False
