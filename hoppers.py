@@ -68,7 +68,6 @@ class Hoppers(object):
                     actual_player_selected_space = input("Choose a space to move to [x,y]: ")
                     self.get_player_input(actual_player_selected_space, selecting_piece=False)
                     self.check_player_movement()
-            self.print_board()
 
         print("There is a winner!")
         print(self.get_winner())
@@ -92,12 +91,12 @@ class Hoppers(object):
             self.valid_input = False
             if self.valid_movement:
                 self.move_piece()
+                self.print_board()
                 self.can_jump_again = self.check_if_can_jump_again()
                 if distance == 1 or (distance == 2 and not self.can_jump_again):
                     self.next_player()
                     self.can_jump_again = False
                 elif distance == 2 and self.can_jump_again:
-                    self.print_board()
                     if self.actual_player.is_ai:
                         self.next_player()
                         self.can_jump_again = False
