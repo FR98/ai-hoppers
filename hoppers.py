@@ -25,19 +25,6 @@ class Hoppers(object):
             [0, 0, 0, 0, 0, -1, -1, -1, -1, -1],
         ]
 
-        # self.board = [
-        #     [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
-        #     [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-        #     [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        #     [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [0, 0, 0, 0, 0, 0, -1, 0, 0, 0],
-        #     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #     [0, 0, 0, 0, 0, 0, 0, 0, -1, 0],
-        #     [0, 0, 0, 0, 0, 0, 0, -1, 0, -1],
-        # ]
-
         self.empty = 0
         self.player1 = player1
         self.player2 = player2
@@ -60,7 +47,6 @@ class Hoppers(object):
                 print("Player 1")
             else:
                 print("Player 2")
-                # input()
 
             if self.actual_player.is_ai:
                 move = self.actual_player.play(self.board)
