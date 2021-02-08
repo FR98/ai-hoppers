@@ -87,7 +87,7 @@ class Player(object):
         return value
 
     def get_distance(self, a, b):
-            return sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+        return sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
     def check_if_can_jump_again(self, board, position):
         coords = self.get_cardinals_coords(position)
@@ -96,16 +96,15 @@ class Player(object):
 
         for coord in [n1, ne1, e1, se1, s1, so1, o1, no1]:
             if not coord: continue
-
-            if board[coord.y][coord.x] != 0:
-                if coord == n1      and n2  and board[n2.y][n2.x] == 0:    return True
-                elif coord == ne1   and ne2 and board[ne2.y][ne2.x] == 0:  return True
-                elif coord == e1    and e2  and board[e2.y][e2.x] == 0:    return True
-                elif coord == se1   and se2 and board[se2.y][se2.x] == 0:  return True
-                elif coord == s1    and s2  and board[s2.y][s2.x] == 0:    return True
-                elif coord == so1   and so2 and board[so2.y][so2.x] == 0:  return True
-                elif coord == o1    and o2  and board[o2.y][o2.x] == 0:    return True
-                elif coord == no1   and no2 and board[no2.y][no2.x] == 0:  return True
+            if board[coord.y][coord.x] == 0: continue
+            if coord == n1      and n2  and board[n2.y][n2.x] == 0:    return True
+            elif coord == ne1   and ne2 and board[ne2.y][ne2.x] == 0:  return True
+            elif coord == e1    and e2  and board[e2.y][e2.x] == 0:    return True
+            elif coord == se1   and se2 and board[se2.y][se2.x] == 0:  return True
+            elif coord == s1    and s2  and board[s2.y][s2.x] == 0:    return True
+            elif coord == so1   and so2 and board[so2.y][so2.x] == 0:  return True
+            elif coord == o1    and o2  and board[o2.y][o2.x] == 0:    return True
+            elif coord == no1   and no2 and board[no2.y][no2.x] == 0:  return True
         return False
 
     def is_there_winner(self, board):
@@ -138,12 +137,12 @@ class Player(object):
                 for cardinal in cardinals_coords:
                     if not cardinals_coords[cardinal]: continue
                     is_possible, distance = self.is_possible_movement(board, actual_position, cardinals_coords[cardinal])
-                    if is_possible:
-                        moves.append({
-                            "from": actual_position,
-                            "to": cardinals_coords[cardinal],
-                            "distance": distance
-                        })
+                    if not is_possible: continue
+                    moves.append({
+                        "from": actual_position,
+                        "to": cardinals_coords[cardinal],
+                        "distance": distance
+                    })
         return moves
 
     def is_possible_movement(self, board, from_position, to_position):
@@ -151,30 +150,20 @@ class Player(object):
         n1, ne1, e1, se1, s1, so1, o1, no1 = coords["n1"], coords["ne1"], coords["e1"], coords["se1"], coords["s1"], coords["so1"], coords["o1"], coords["no1"]
         n2, ne2, e2, se2, s2, so2, o2, no2 = coords["n2"], coords["ne2"], coords["e2"], coords["se2"], coords["s2"], coords["so2"], coords["o2"], coords["no2"]
 
-        if board[to_position.y][to_position.x] != 0:
-            return False, None
+        if board[to_position.y][to_position.x] != 0: return False, None
 
         if to_position in [n1, ne1, e1, se1, s1, so1, o1, no1]:
             return True, 1
         elif to_position in [n2, ne2, e2, se2, s2, so2, o2, no2]:
-            if to_position == n2 and board[n1.y][n1.x] != 0:
-                return True, 2
-            elif to_position == ne2 and board[ne1.y][ne1.x] != 0:
-                return True, 2
-            elif to_position == e2 and board[e1.y][e1.x] != 0:
-                return True, 2
-            elif to_position == se2 and board[se1.y][se1.x] != 0:
-                return True, 2
-            elif to_position == s2 and board[s1.y][s1.x] != 0:
-                return True, 2
-            elif to_position == so2 and board[so1.y][so1.x] != 0:
-                return True, 2
-            elif to_position == o2 and board[o1.y][o1.x] != 0:
-                return True, 2
-            elif to_position == no2 and board[no1.y][no1.x] != 0:
-                return True, 2
-            else:
-                return False, None
+            if to_position == n2    and board[n1.y][n1.x] != 0:     return True, 2
+            elif to_position == ne2 and board[ne1.y][ne1.x] != 0:   return True, 2
+            elif to_position == e2  and board[e1.y][e1.x] != 0:     return True, 2
+            elif to_position == se2 and board[se1.y][se1.x] != 0:   return True, 2
+            elif to_position == s2  and board[s1.y][s1.x] != 0:     return True, 2
+            elif to_position == so2 and board[so1.y][so1.x] != 0:   return True, 2
+            elif to_position == o2  and board[o1.y][o1.x] != 0:     return True, 2
+            elif to_position == no2 and board[no1.y][no1.x] != 0:   return True, 2
+            else: return False, None
         return False, None
 
     def get_cardinals_coords(self, current_position):
