@@ -23,28 +23,27 @@ class Player(object):
         movement_value, best_move = self.minimax(board, self.depth, self.value)
         return best_move
 
-    def minimax(self, board, depth, player_value, alfa=float("-inf"), beta=float("inf")):
-        maximising = True if player_value == self.value else False
-
+    def minimax(self, board, depth, maximising=True, alfa=float("-inf"), beta=float("inf")):
         if self.is_there_winner(board):
-            return self.eval(board, player_value), None
+            return self.eval(board, self.value), None
 
         if depth == 0:
             random_move = choice(self.get_possible_moves(board, self.value))
-            return self.eval(board, player_value), random_move
+            return self.eval(board, self.value), random_move
 
         best_value = float("-inf") if maximising else float("inf")
-        moves = self.get_possible_moves(board, player_value)
+        eval_player = self.value if maximising else -self.value
+        moves = self.get_possible_moves(board, eval_player)
 
-        shuffle(moves)
-        shuffle(moves)
+        moves.reverse()
         for move in moves:
+            # print(move)
             # Move piece
             piece_value = board[move["from"].y][move["from"].x]
             board[move["from"].y][move["from"].x] = 0
             board[move["to"].y][move["to"].x] = piece_value
 
-            movement_value, _ = self.minimax(board, depth - 1, player_value, alfa, beta)
+            movement_value, _ = self.minimax(board, depth - 1, not maximising, alfa, beta)
 
             # Move the piece back
             board[move["from"].y][move["from"].x] = piece_value
@@ -60,7 +59,7 @@ class Player(object):
                 best_value = movement_value
                 beta = min(beta, best_value)
 
-            if self.alfa_beta_pruning and (maximising and alfa > beta) or (not maximising and alfa < beta):
+            if self.alfa_beta_pruning and beta <= alfa:
                 return best_value, best_move
 
         return best_value, best_move
@@ -89,6 +88,26 @@ class Player(object):
     def get_distance(self, a, b):
         return sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
+    def check_available_jumps(self, board, position):
+        coords = self.get_cardinals_coords(position)
+        n1, ne1, e1, se1, s1, so1, o1, no1 = coords["n1"], coords["ne1"], coords["e1"], coords["se1"], coords["s1"], coords["so1"], coords["o1"], coords["no1"]
+        n2, ne2, e2, se2, s2, so2, o2, no2 = coords["n2"], coords["ne2"], coords["e2"], coords["se2"], coords["s2"], coords["so2"], coords["o2"], coords["no2"]
+
+        available_jumps = 0
+        for coord in [n1, ne1, e1, se1, s1, so1, o1, no1]:
+            if not coord: continue
+            if board[coord.y][coord.x] == 0: continue
+            if coord == n1      and n2  and board[n2.y][n2.x] == 0:    available_jumps += 1
+            elif coord == ne1   and ne2 and board[ne2.y][ne2.x] == 0:  available_jumps += 1
+            elif coord == e1    and e2  and board[e2.y][e2.x] == 0:    available_jumps += 1
+            elif coord == se1   and se2 and board[se2.y][se2.x] == 0:  available_jumps += 1
+            elif coord == s1    and s2  and board[s2.y][s2.x] == 0:    available_jumps += 1
+            elif coord == so1   and so2 and board[so2.y][so2.x] == 0:  available_jumps += 1
+            elif coord == o1    and o2  and board[o2.y][o2.x] == 0:    available_jumps += 1
+            elif coord == no1   and no2 and board[no2.y][no2.x] == 0:  available_jumps += 1
+        
+        return available_jumps
+
     def is_there_winner(self, board):
         player1_territory_coords, player2_territory_coords = self.get_territories()
         empty_space_in_1, empty_space_in_2 = False, False
@@ -107,7 +126,7 @@ class Player(object):
 
         return False
 
-    def get_possible_moves(self, board, player_value):
+    def get_possible_moves(self, board, player_value, accumulated_moves=[]):
         moves = []
         for y in range(len(board)):
             for x in range(len(board[y])):
@@ -125,6 +144,32 @@ class Player(object):
                         "to": cardinals_coords[cardinal],
                         "distance": distance
                     })
+
+        for move in moves:
+            if move in accumulated_moves: continue
+            accumulated_moves.append(move)
+            # Move piece
+            board[move["from"].y][move["from"].x] = 0
+            board[move["to"].y][move["to"].x] = player_value
+
+            available_jumps = self.check_available_jumps(board, move["to"])
+            if move["distance"] == 2 and available_jumps > 1:
+                next_moves = self.get_possible_moves(board, player_value, accumulated_moves)
+
+                for next_move in next_moves:
+                    if next_move in moves: continue
+                    if move["from"] == next_move["to"]: continue
+                    if next_move["distance"] == 2:
+                        moves.append({
+                            "from": move["from"],
+                            "to": next_move["to"],
+                            "distance": None
+                        })
+
+            # Move the piece back
+            board[move["from"].y][move["from"].x] = player_value
+            board[move["to"].y][move["to"].x] = 0
+
         return moves
 
     def is_possible_movement(self, board, from_position, to_position):

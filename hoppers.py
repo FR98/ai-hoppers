@@ -32,8 +32,6 @@ class Hoppers(object):
         self.valid_input = False
         self.selected_piece = None
         self.move_to = None
-        self.valid_movement = True
-        self.can_jump_again = False
         self.player1_territory = []
         self.player2_territory = []
         self.play()
@@ -59,7 +57,6 @@ class Hoppers(object):
 
                 if self.valid_input:
                     self.get_player_input(move_to, selecting_piece=False)
-                    self.check_player_movement()
             else:
                 actual_player_selected_piece = input("Choose a piece to move [x,y]: ")
                 self.get_player_input(actual_player_selected_piece, selecting_piece=True)
@@ -67,45 +64,16 @@ class Hoppers(object):
                 if self.valid_input:
                     actual_player_selected_space = input("Choose a space to move to [x,y]: ")
                     self.get_player_input(actual_player_selected_space, selecting_piece=False)
-                    self.check_player_movement()
-            self.print_board()
+
+            self.check_player_movement()
 
         print("There is a winner!")
         print(self.get_winner())
 
     def check_player_movement(self):
-        distance, self.valid_movement = 0, False
-
-        if self.valid_input:
-            if self.selected_piece.y == self.move_to.y or self.selected_piece.x == self.move_to.x:
-                distance, valid_jump = self.get_lineal_distance()
-            else:
-                distance, valid_jump = self.get_diagonal_distance()
-
-            if distance == 1 and not self.can_jump_again:
-                self.valid_movement = True
-            elif distance == 2:
-                self.valid_movement = True if valid_jump else False
-            else:
-                self.valid_movement = False
-
-            self.valid_input = False
-            if self.valid_movement:
-                self.move_piece()
-                self.can_jump_again = self.check_if_can_jump_again()
-                if distance == 1 or (distance == 2 and not self.can_jump_again):
-                    self.next_player()
-                    self.can_jump_again = False
-                elif distance == 2 and self.can_jump_again:
-                    self.print_board()
-                    if self.actual_player.is_ai:
-                        self.next_player()
-                        self.can_jump_again = False
-                    else:
-                        want_to_jump_again = input("Do you want to move again? (y/n): ")
-                        if want_to_jump_again == "n":
-                            self.next_player()
-                            self.can_jump_again = False
+        self.move_piece()
+        self.print_board()
+        self.next_player()
 
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
@@ -132,25 +100,6 @@ class Hoppers(object):
         self.get_territories()
         if 0 in self.player1_territory: return "Player 1"
         return "Player 2"
-
-    def check_if_can_jump_again(self):
-        coords = self.get_cardinals_coords()
-        n1, ne1, e1, se1, s1, so1, o1, no1 = coords["n1"], coords["ne1"], coords["e1"], coords["se1"], coords["s1"], coords["so1"], coords["o1"], coords["no1"]
-        n2, ne2, e2, se2, s2, so2, o2, no2 = coords["n2"], coords["ne2"], coords["e2"], coords["se2"], coords["s2"], coords["so2"], coords["o2"], coords["no2"]
-
-        for coord in [n1, ne1, e1, se1, s1, so1, o1, no1]:
-            if not coord: continue
-
-            if self.board[coord.y][coord.x] != 0:
-                if coord == n1      and n2  and self.board[n2.y][n2.x] == 0:    return True
-                elif coord == ne1   and ne2 and self.board[ne2.y][ne2.x] == 0:  return True
-                elif coord == e1    and e2  and self.board[e2.y][e2.x] == 0:    return True
-                elif coord == se1   and se2 and self.board[se2.y][se2.x] == 0:  return True
-                elif coord == s1    and s2  and self.board[s2.y][s2.x] == 0:    return True
-                elif coord == so1   and so2 and self.board[so2.y][so2.x] == 0:  return True
-                elif coord == o1    and o2  and self.board[o2.y][o2.x] == 0:    return True
-                elif coord == no1   and no2 and self.board[no2.y][no2.x] == 0:  return True
-        return False
 
     def get_lineal_distance(self):
         distance, valid_jump = 0, False
