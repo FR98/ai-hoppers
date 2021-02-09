@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+import threading
 from math import sqrt
 from random import choice, shuffle
 from collections import namedtuple
@@ -13,15 +14,18 @@ Position = namedtuple('Position', 'x y')
 
 class Player(object):
 
-    def __init__(self, value, is_ai=False, depth=1, alfa_beta_pruning=True, multiple_jumps_enabled=True):
+    def __init__(self, value, is_ai=False, depth=1, alfa_beta_pruning=True, multiple_jumps_enabled=True, mem=True):
         self.value = value
         self.is_ai = is_ai
         self.depth = depth
         self.alfa_beta_pruning = alfa_beta_pruning
         self.multiple_jumps_enabled = multiple_jumps_enabled
+        self.temp = []
+        self.mem = mem
 
     def play(self, board):
         movement_value, best_move = self.minimax(board, self.depth, self.value)
+        self.temp.append(best_move)
         return best_move
 
     def minimax(self, board, depth, maximising=True, alfa=float("-inf"), beta=float("inf")):
@@ -35,10 +39,12 @@ class Player(object):
         best_value = float("-inf") if maximising else float("inf")
         eval_player = self.value if maximising else -self.value
         moves = self.get_possible_moves(board, eval_player)
+        best_move = choice(moves)
 
         moves.reverse()
         moves.sort(key=lambda x: x.get('distance'), reverse=True)
         for move in moves:
+            if self.mem and self.three_in_a_row(move): continue
             # Move piece
             piece_value = board[move["from"].y][move["from"].x]
             board[move["from"].y][move["from"].x] = 0
@@ -65,6 +71,15 @@ class Player(object):
 
         return best_value, best_move
 
+    def three_in_a_row(self, move):
+        if self.temp.count(move) >= 3:
+            for i in range(len(self.temp)):
+                try:
+                    if self.temp[i] == move and self.temp[i+2] == move and self.temp[i+4] == move:
+                        return True
+                except: pass
+        return False
+
     def eval(self, board, player_value):
         value = 0
         player1_territory, player2_territory = self.get_territories()
@@ -72,13 +87,30 @@ class Player(object):
         for y in range(len(board)):
             for x in range(len(board[y])):
                 position = board[y][x]
+                distances = []
 
                 if position == 1:
-                    distances = [self.get_distance(Position(x, y), go_to) for go_to in player2_territory if board[go_to.y][go_to.x] == 0]
+                    for go_to in player2_territory:
+                        if board[go_to.y][go_to.x] == 0:
+                            dist_val = self.get_distance(Position(x, y), go_to)
+                            # if go_to.x == 1 or go_to.x == 0 or go_to.x == 9 or go_to.x == 8:
+                            #     dist_val *= 1.5
+                            # if go_to.x == go_to.y:
+                            #     dist_val *= 2
+                            distances.append(dist_val)
+                    # distances = [self.get_distance(Position(x, y), go_to) for go_to in player2_territory if board[go_to.y][go_to.x] == 0]
                     value -= max(distances) if len(distances) else -10
 
                 elif position == -1:
-                    distances = [self.get_distance(Position(x, y), go_to) for go_to in player1_territory if board[go_to.y][go_to.x] == 0]
+                    for go_to in player1_territory:
+                        if board[go_to.y][go_to.x] == 0:
+                            dist_val = self.get_distance(Position(x, y), go_to)
+                            # if go_to.x == 1 or go_to.x == 0 or go_to.x == 9 or go_to.x == 8:
+                            #     dist_val *= -1.5
+                            # if go_to.x == go_to.y:
+                            #     dist_val *= -2
+                            distances.append(dist_val)
+                    # distances = [self.get_distance(Position(x, y), go_to) for go_to in player1_territory if board[go_to.y][go_to.x] == 0]
                     value += max(distances) if len(distances) else -10
 
         if player_value == -1:
@@ -128,45 +160,80 @@ class Player(object):
         return False
 
     def get_possible_moves(self, board, player_value, accumulated_moves=[]):
+        player1_territory_coords, player2_territory_coords = self.get_territories()
         moves = []
+        
+        class myThread(threading.Thread):
+            def __init__(self, threadID, name, player, y):
+                threading.Thread.__init__(self)
+                self.threadID = threadID
+                self.name = name
+                self.player = player
+                self.y = y
+
+            def run(self):
+                y = self.y
+                for x in range(len(board[y])):
+                    if board[y][x] != player_value: continue
+                    actual_position = Position(x, y)
+
+                    if (x == 8 and y == 9) or (x == 9 and y == 8) or (x == 1 and y == 0) or (x == 0 and y == 1) or \
+                        (x == 9 and y == 9) or (x == 0 and y == 0) or (x == 8 and y == 8) or (x == 1 and y == 1):
+                        if player_value == 1 and actual_position in player2_territory_coords: continue
+                        if player_value == -1 and actual_position in player1_territory_coords: continue
+
+                    cardinals_coords = self.player.get_cardinals_coords(actual_position)
+                    for cardinal in cardinals_coords:
+                        if not cardinals_coords[cardinal]: continue
+                        is_possible, distance = self.player.is_possible_movement(board, actual_position, cardinals_coords[cardinal])
+                        if not is_possible: continue
+                        moves.append({
+                            "from": actual_position,
+                            "to": cardinals_coords[cardinal],
+                            "distance": distance
+                        })
+
         for y in range(len(board)):
-            for x in range(len(board[y])):
-                if board[y][x] != player_value: continue
+            t = myThread(y, "Thread", self, y)
+            t.start()
 
-                actual_position = Position(x, y)
-                cardinals_coords = self.get_cardinals_coords(actual_position)
+        class myThread2(threading.Thread):
+            def __init__(self, threadID, name, player, board, move):
+                threading.Thread.__init__(self)
+                self.threadID = threadID
+                self.name = name
+                self.player = player
+                self.board = board
+                self.move = move
 
-                for cardinal in cardinals_coords:
-                    if not cardinals_coords[cardinal]: continue
-                    is_possible, distance = self.is_possible_movement(board, actual_position, cardinals_coords[cardinal])
-                    if not is_possible: continue
-                    moves.append({
-                        "from": actual_position,
-                        "to": cardinals_coords[cardinal],
-                        "distance": distance
-                    })
+            def run(self):
+                available_jumps = self.player.check_available_jumps(self.board, self.move["to"])
+                if self.move["distance"] == 2 and available_jumps > 1:
+                    next_moves = self.player.get_possible_moves(self.board, player_value, accumulated_moves)
+
+                    for next_move in next_moves:
+                        if next_move in moves: continue
+                        if self.move["from"] == next_move["to"]: continue
+                        if next_move["distance"] == 2:
+                            moves.append({
+                                "from": self.move["from"],
+                                "to": next_move["to"],
+                                "distance": 3
+                            })
+
 
         if self.multiple_jumps_enabled and player_value == self.value:
-            for move in moves:
+            for move_index in range(len(moves)):
+                move = moves[move_index]
                 if move in accumulated_moves: continue
                 accumulated_moves.append(move)
+
                 # Move piece
                 board[move["from"].y][move["from"].x] = 0
                 board[move["to"].y][move["to"].x] = player_value
 
-                available_jumps = self.check_available_jumps(board, move["to"])
-                if move["distance"] == 2 and available_jumps > 1:
-                    next_moves = self.get_possible_moves(board, player_value, accumulated_moves)
-
-                    for next_move in next_moves:
-                        if next_move in moves: continue
-                        if move["from"] == next_move["to"]: continue
-                        if next_move["distance"] == 2:
-                            moves.append({
-                                "from": move["from"],
-                                "to": next_move["to"],
-                                "distance": 3
-                            })
+                t = myThread2(move_index, "Thread", self, board, move)
+                t.start()
 
                 # Move the piece back
                 board[move["from"].y][move["from"].x] = player_value
