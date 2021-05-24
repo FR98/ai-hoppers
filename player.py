@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+import xmltodict
 from math import sqrt
 from random import choice, shuffle
 from collections import namedtuple
@@ -21,7 +22,30 @@ class Player(object):
 
     def play(self, board):
         movement_value, best_move = self.minimax(board, self.depth, self.value)
-        return best_move
+        best_move_xml = self.to_xml(best_move)
+        # return best_move
+        return best_move_xml
+
+    def to_xml(self, best_move):
+        xml_data = {
+            'move': {
+                '@distance': best_move['distance'],
+                'from': {
+                    '@row': best_move['from'].x,
+                    '@col': best_move['from'].y,
+                },
+                'to': {
+                    '@row': best_move['to'].x,
+                    '@col': best_move['to'].y,
+                },
+                'path': {
+                    'pos': []
+                }
+            }
+        }
+
+        xml = xmltodict.unparse(xml_data, pretty = True)
+        return xml
 
     def minimax(self, board, depth, player_value, alfa=float("-inf"), beta=float("inf")):
         maximising = True if player_value == self.value else False

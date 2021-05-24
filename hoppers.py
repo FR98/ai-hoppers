@@ -5,6 +5,8 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+import json
+import xmltodict
 from collections import namedtuple
 
 Position = namedtuple('Position', 'x y')
@@ -49,9 +51,21 @@ class Hoppers(object):
                 print("Player 2")
 
             if self.actual_player.is_ai:
-                move = self.actual_player.play(self.board)
-                move_from = "{x},{y}".format(x=move["from"].x, y=move["from"].y)
-                move_to = "{x},{y}".format(x=move["to"].x, y=move["to"].y)
+                player_move = self.actual_player.play(self.board)
+                move = dict(xmltodict.parse(player_move))['move']
+                move = json.loads(json.dumps(move))
+                print("="*100)
+                print(player_move)
+                print(move)
+                print("="*100)
+                move_from = "{x},{y}".format(
+                    x = move['from']['@row'],
+                    y = move['from']['@col']
+                )
+                move_to = "{x},{y}".format(
+                    x = move['to']['@row'],
+                    y = move['to']['@col']
+                )
 
                 self.get_player_input(move_from, selecting_piece=True)
 

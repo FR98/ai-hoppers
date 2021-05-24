@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+import xmltodict
 from math import sqrt
 from random import choice, shuffle
 from collections import namedtuple
@@ -24,8 +25,31 @@ class Player(object):
 
     def play(self, board):
         movement_value, best_move = self.minimax(board, self.depth, self.value)
+        best_move_xml = self.to_xml(best_move)
         self.temp.append(best_move)
-        return best_move
+        # return best_move
+        return best_move_xml
+
+    def to_xml(self, best_move):
+        xml_data = {
+            'move': {
+                '@distance': best_move['distance'],
+                'from': {
+                    '@row': best_move['from'].x,
+                    '@col': best_move['from'].y,
+                },
+                'to': {
+                    '@row': best_move['to'].x,
+                    '@col': best_move['to'].y,
+                },
+                'path': {
+                    'pos': [{ '@row': position.x, '@col': position.y } for position in best_move['path']]
+                }
+            }
+        }
+
+        xml = xmltodict.unparse(xml_data, pretty = True)
+        return xml
 
     def minimax(self, board, depth, maximising=True, alfa=float("-inf"), beta=float("inf")):
         if self.is_there_winner(board):
@@ -137,7 +161,7 @@ class Player(object):
             elif coord == so1   and so2 and board[so2.y][so2.x] == 0:  available_jumps += 1
             elif coord == o1    and o2  and board[o2.y][o2.x] == 0:    available_jumps += 1
             elif coord == no1   and no2 and board[no2.y][no2.x] == 0:  available_jumps += 1
-        
+
         return available_jumps
 
     def is_there_winner(self, board):
@@ -175,11 +199,12 @@ class Player(object):
 
                 for cardinal in cardinals_coords:
                     if not cardinals_coords[cardinal]: continue
-                    is_possible, distance = self.is_possible_movement(board, actual_position, cardinals_coords[cardinal])
+                    is_possible, distance, path = self.is_possible_movement(board, actual_position, cardinals_coords[cardinal])
                     if not is_possible: continue
                     moves.append({
                         "from": actual_position,
                         "to": cardinals_coords[cardinal],
+                        "path": path,
                         "distance": distance
                     })
 
@@ -202,6 +227,7 @@ class Player(object):
                             moves.append({
                                 "from": move["from"],
                                 "to": next_move["to"],
+                                "path": [move["from"], next_move["path"][0], next_move["to"]],
                                 "distance": 3
                             })
 
@@ -216,21 +242,21 @@ class Player(object):
         n1, ne1, e1, se1, s1, so1, o1, no1 = coords["n1"], coords["ne1"], coords["e1"], coords["se1"], coords["s1"], coords["so1"], coords["o1"], coords["no1"]
         n2, ne2, e2, se2, s2, so2, o2, no2 = coords["n2"], coords["ne2"], coords["e2"], coords["se2"], coords["s2"], coords["so2"], coords["o2"], coords["no2"]
 
-        if board[to_position.y][to_position.x] != 0: return False, None
+        if board[to_position.y][to_position.x] != 0: return False, None, []
 
         if to_position in [n1, ne1, e1, se1, s1, so1, o1, no1]:
-            return True, 1
+            return True, 1, [from_position, to_position]
         elif to_position in [n2, ne2, e2, se2, s2, so2, o2, no2]:
-            if to_position == n2    and board[n1.y][n1.x] != 0:     return True, 2
-            elif to_position == ne2 and board[ne1.y][ne1.x] != 0:   return True, 2
-            elif to_position == e2  and board[e1.y][e1.x] != 0:     return True, 2
-            elif to_position == se2 and board[se1.y][se1.x] != 0:   return True, 2
-            elif to_position == s2  and board[s1.y][s1.x] != 0:     return True, 2
-            elif to_position == so2 and board[so1.y][so1.x] != 0:   return True, 2
-            elif to_position == o2  and board[o1.y][o1.x] != 0:     return True, 2
-            elif to_position == no2 and board[no1.y][no1.x] != 0:   return True, 2
-            else: return False, None
-        return False, None
+            if to_position == n2    and board[n1.y][n1.x] != 0:     return True, 2, [from_position, to_position]
+            elif to_position == ne2 and board[ne1.y][ne1.x] != 0:   return True, 2, [from_position, to_position]
+            elif to_position == e2  and board[e1.y][e1.x] != 0:     return True, 2, [from_position, to_position]
+            elif to_position == se2 and board[se1.y][se1.x] != 0:   return True, 2, [from_position, to_position]
+            elif to_position == s2  and board[s1.y][s1.x] != 0:     return True, 2, [from_position, to_position]
+            elif to_position == so2 and board[so1.y][so1.x] != 0:   return True, 2, [from_position, to_position]
+            elif to_position == o2  and board[o1.y][o1.x] != 0:     return True, 2, [from_position, to_position]
+            elif to_position == no2 and board[no1.y][no1.x] != 0:   return True, 2, [from_position, to_position]
+            else: return False, None, []
+        return False, None, []
 
     def get_cardinals_coords(self, current_position):
         n1 = Position(current_position.x, current_position.y - 1)
