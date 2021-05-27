@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+import json
 import xmltodict
 from math import sqrt
 from random import choice, shuffle
@@ -22,13 +23,64 @@ class Player(object):
         self.multiple_jumps_enabled = multiple_jumps_enabled
         self.temp = []
         self.mem = mem
+        self.board = [
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, -1],
+            [0, 0, 0, 0, 0, 0, 0, 0, -1, -1],
+            [0, 0, 0, 0, 0, 0, 0, -1, -1, -1],
+            [0, 0, 0, 0, 0, 0, -1, -1, -1, -1],
+            [0, 0, 0, 0, 0, -1, -1, -1, -1, -1],
+        ]
 
-    def play(self, board):
-        movement_value, best_move = self.minimax(board, self.depth, self.value)
+    def print_board(self):
+        coords = "-|0|1|2|3|4|5|6|7|8|9|-"
+        chars = {
+            -1: "o",
+            +1: "x",
+            0: " "
+        }
+
+        print("\n")
+        print(coords)
+        for y in range(len(self.board)):
+            row = "{}|".format(y)
+            for x in range(len(self.board[y])):
+                row += "{cell}|".format(cell=chars[self.board[y][x]])
+            print(row + "{}".format(y))
+        print(coords)
+
+    def play(self, opponent_move_xml):
+        if opponent_move_xml:
+            self.move_piece(opponent_move_xml, -self.value)
+
+        movement_value, best_move = self.minimax(self.board, self.depth, self.value)
         best_move_xml = self.to_xml(best_move)
         self.temp.append(best_move)
-        # return best_move
+
+        self.move_piece(best_move_xml, self.value)
+        # self.print_board()
         return best_move_xml
+
+    def move_piece(self, move_xml, player_value):
+        move = dict(xmltodict.parse(move_xml))['move']
+        move = json.loads(json.dumps(move))
+
+        selected_piece = Position(
+            int(move['from']['@row']),
+            int(move['from']['@col'])
+        )
+
+        move_to = Position(
+            int(move['to']['@row']),
+            int(move['to']['@col'])
+        )
+
+        self.board[selected_piece.y][selected_piece.x] = 0
+        self.board[move_to.y][move_to.x] = player_value
 
     def to_xml(self, best_move):
         xml_data = {

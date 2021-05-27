@@ -45,13 +45,19 @@ class Hoppers(object):
         self.print_board()
 
         while not self.is_there_winner():
+            print("\n"*2)
             if self.actual_player == self.player1:
-                print("Player 1")
+                print("Player 1: ", self.actual_player.value)
             else:
-                print("Player 2")
+                print("Player 2: ", self.actual_player.value)
 
             if self.actual_player.is_ai:
-                player_move = self.actual_player.play(self.board)
+                opponent_move = None
+
+                if self.selected_piece and self.move_to:
+                    opponent_move = self.to_xml(self.selected_piece, self.move_to)
+
+                player_move = self.actual_player.play(opponent_move)
                 move = dict(xmltodict.parse(player_move))['move']
                 move = json.loads(json.dumps(move))
                 print("="*100)
@@ -84,6 +90,27 @@ class Hoppers(object):
         print("There is a winner!")
         print(self.get_winner())
 
+    def to_xml(self, move_from, move_to):
+        xml_data = {
+            'move': {
+                '@distance': 0,
+                'from': {
+                    '@row': move_from.x,
+                    '@col': move_from.y,
+                },
+                'to': {
+                    '@row': move_to.x,
+                    '@col': move_to.y,
+                },
+                'path': {
+                    'pos': []
+                }
+            }
+        }
+
+        xml = xmltodict.unparse(xml_data, pretty = True)
+        return xml
+
     def check_player_movement(self):
         self.move_piece()
         self.print_board()
@@ -92,7 +119,7 @@ class Hoppers(object):
     def move_piece(self):
         self.board[self.selected_piece.y][self.selected_piece.x] = 0
         self.board[self.move_to.y][self.move_to.x] = self.actual_player.value
-        self.selected_piece = self.move_to
+        # self.selected_piece = self.move_to
 
     def is_there_winner(self):
         self.get_territories()
