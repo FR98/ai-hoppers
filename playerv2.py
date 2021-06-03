@@ -5,6 +5,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
+import json
 import xmltodict
 from math import sqrt
 from random import choice, shuffle
@@ -20,12 +21,45 @@ class Player(object):
         self.depth = depth
         self.alfa_beta_pruning = alfa_beta_pruning
         self.multiple_jumps_enabled = multiple_jumps_enabled
+        self.board = [
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, -1],
+            [0, 0, 0, 0, 0, 0, 0, 0, -1, -1],
+            [0, 0, 0, 0, 0, 0, 0, -1, -1, -1],
+            [0, 0, 0, 0, 0, 0, -1, -1, -1, -1],
+            [0, 0, 0, 0, 0, -1, -1, -1, -1, -1],
+        ]
 
-    def play(self, board):
-        movement_value, best_move = self.minimax(board, self.depth, self.value)
+    def play(self, opponent_move_xml):
+        if opponent_move_xml:
+            self.move_piece(opponent_move_xml, -self.value)
+
+        movement_value, best_move = self.minimax(self.board, self.depth, self.value)
         best_move_xml = self.to_xml(best_move)
-        # return best_move
+
+        self.move_piece(best_move_xml, self.value)
         return best_move_xml
+
+    def move_piece(self, move_xml, player_value):
+        move = dict(xmltodict.parse(move_xml))['move']
+        move = json.loads(json.dumps(move))
+
+        selected_piece = Position(
+            int(move['from']['@row']),
+            int(move['from']['@col'])
+        )
+
+        move_to = Position(
+            int(move['to']['@row']),
+            int(move['to']['@col'])
+        )
+
+        self.board[selected_piece.y][selected_piece.x] = 0
+        self.board[move_to.y][move_to.x] = player_value
 
     def to_xml(self, best_move):
         xml_data = {
