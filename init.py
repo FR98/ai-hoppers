@@ -8,7 +8,13 @@ from playerv3 import Player as PlayerV3
 # player1 = PlayerV3(is_ai=True, value=1, depth=3, multiple_jumps_enabled=True)
 # player2 = PlayerV2(is_ai=True, value=-1, depth=2, multiple_jumps_enabled=True)
 
+# Play bot vs bot
 player1 = PlayerV3(is_ai=True, value=1, depth=2, multiple_jumps_enabled=True)
 player2 = PlayerV2(is_ai=True, value=-1, depth=2, multiple_jumps_enabled=True)
+
+
+# Play user vs bot
+# player1 = PlayerV3(is_ai=True, value=1, depth=2, multiple_jumps_enabled=True)
+# player2 = PlayerV2(is_ai=False, value=-1)
 
 Hoppers(player1, player2)
